@@ -1,0 +1,11 @@
+{
+  "name": "ht-storage",
+  "version": "1.0.0",
+  "main": "ht-storage.js",
+  "repository": "https://github.com/maksimyurkov/ht-storage",
+  "author": "maksimyurkov <yurkov.maksim.sergeevich@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@polymer/lit-element": "@next"
+  }
+}
