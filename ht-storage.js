@@ -192,7 +192,6 @@ class HTStorage extends LitElement {
             <div id="loading-text">${loadingText}</div>
           </div>
         </div>
-        
         <div id="actions">
           <paper-button id="delete" on-click=${e => {
             this._deleteSelected();
@@ -202,7 +201,7 @@ class HTStorage extends LitElement {
           <paper-button raised on-click=${e => {
             this._openSelector();
           }}><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить файл</paper-button>
-          <input type="file" on-change=${e => {
+          <input type="file" multiple accept="image/*" on-change=${e => {
             this._inputChanged();
           }} hidden>
         </div>
@@ -284,6 +283,12 @@ class HTStorage extends LitElement {
     this.selected = items;
   }
 
+  _resetToggle() {
+    let checkbox = this.shadowRoot.querySelector("paper-checkbox");
+    if (checkbox.checked) checkbox.click();
+    this.selected = [];
+  }
+
   updateSelected() {
     let items = [];
     let elems = this.shadowRoot.querySelectorAll("ht-storage-item");
@@ -294,25 +299,47 @@ class HTStorage extends LitElement {
   }
 
   async _deleteSelected() {
-    console.log("_deleteSelected");
+    try {
+      let promises = [];
+      this.selected.forEach(item => {
+        promises.push(item.delete());
+      });
+      await Promise.all(promises);
+      this.updateList();
+    } catch (err) {
+      console.log("_deleteSelected: ", err);
+    }
+  }
+
+  _showToast(options) {
+    this.dispatchEvent(
+      new CustomEvent("show-toast", {
+        bubbles: true,
+        composed: true,
+        detail: options
+      })
+    );
   }
 
   _inputChanged(e) {
-    let file = this.input.files[0];
-    if (file === undefined) return;
-    if (file.type.split("/")[0] !== "image") {
-      console.error("unsupported file type :( ");
-      return;
+    let files = this.input.files;
+    if (files === undefined) return;
+    let temp = [];
+    for (let file of files) {
+      temp.push(file);
+      if (file.type.split("/")[0] !== "image") {
+        this._showToast({ text: "Загружать можно только изображения" });
+        return;
+      }
     }
-    this._uploadFile(file);
+    this._uploadFiles(temp);
   }
 
   async updateList() {
     try {
-      this.loadingText = "Загрузка списка файлов";
+      this.loadingText = "Обновление списка файлов";
       this.loading = true;
       let items = [];
-      let env = this;
       let snapshot = await firebase
         .firestore()
         .collection("uploads")
@@ -325,70 +352,114 @@ class HTStorage extends LitElement {
         items.push(data);
       });
       this.items = items;
+      this._resetToggle();
       this.loading = false;
     } catch (err) {
       console.log("UpdateList: ", error);
     }
   }
 
-  _listen(fileName) {
-    let env = this;
-    this.loading = true;
-    this.loadingText = "Идет обработка файла";
-    let unsubscribe = firebase
-      .firestore()
-      .collection("uploads")
-      .where("userId", "==", firebase.auth().currentUser.uid)
-      .onSnapshot(function(snapshot) {
-        snapshot.docChanges.forEach(function(change) {
-          if (change.type === "added") {
-            let doc = change.doc.data();
-            if (doc.name == fileName) {
-              console.log(doc.name);
-              env.loading = false;
-              unsubscribe();
-              env.updateList();
-            }
-          }
-          // if (change.type === "modified") {
-          //   console.log("Modified city: ", change.doc.data());
-          // }
-          // if (change.type === "removed") {
-          //   console.log("Removed city: ", change.doc.data());
-          // }
-        });
-        // if (doc.exists && doc.data().created !== null) {
-        //   console.log("New record!");
-        // }
-      });
-  }
-
-  _uploadFile(file) {
-    let fileName = file.name;
-    let userId = firebase.auth().currentUser.uid;
-    var storageRef = firebase.storage().ref();
-    var ref = storageRef.child(`uploads/${userId}/${fileName}`);
-
-    this._listen(fileName);
-
-    setTimeout(() => {
-      ref.put(file).then(function(snapshot) {
-        firebase
+  async _checkUploadComplete(fullPath) {
+    try {
+      let unsubscription;
+      let promise = new Promise((resolve, reject) => {
+        unsubscription = firebase
           .firestore()
           .collection("uploads")
-          .add({
-            userId: firebase.auth().currentUser.uid,
-            URL: snapshot.downloadURL,
-            created: firebase.firestore.FieldValue.serverTimestamp(),
-            name: file.name,
-            size: snapshot.totalBytes,
-            type: file.type
-          })
-          .then(_ => {
-            console.log("Complete!");
+          .where("fullPath", "==", fullPath)
+          .onSnapshot(snapshot => {
+            if (snapshot.exists && snapshot.data() !== null) {
+              resolve();
+            } else {
+              snapshot.docChanges.forEach(change => {
+                if (change.type === "added") {
+                  let doc = change.doc.data();
+                  if (doc.fullPath == fullPath) resolve();
+                }
+                // if (change.type === "modified") {
+                //   console.log("Modified city: ", change.doc.data());
+                // }
+                // if (change.type === "removed") {
+                //   console.log("Removed city: ", change.doc.data());
+                // }
+              });
+            }
           });
       });
-    }, 5000);
+      await promise;
+      unsubscription();
+    } catch (err) {
+      console.log(err.message);
+      this._showToast({ text: "_checkUploadComplete error" });
+    }
+  }
+
+  async _isUniqueName(fileName) {
+    try {
+      let snapshot = await firebase
+        .firestore()
+        .collection("uploads")
+        .where(
+          "fullPath",
+          "==",
+          `uploads/${firebase.auth().currentUser.uid}/${fileName}`
+        )
+        .get();
+      let items = [];
+      snapshot.forEach(function(doc) {
+        let data = doc.data();
+        items.push(data);
+      });
+      if (items.length === 0) return true;
+      return false;
+    } catch (err) {
+      console.log(err.message);
+      this._showToast({ text: "_numberOfNameDuplicates" });
+    }
+  }
+
+  async _uploadFile(file) {
+    try {
+      let fileName = file.name;
+      let copyNumber = 1;
+      // Make new File because impossible change file name in input
+      while ((await this._isUniqueName(fileName)) === false) {
+        fileName = file.name;
+        let fileArr = fileName.split(".");
+        let fileFormat = fileArr[fileArr.length - 1];
+        fileArr.splice(fileArr.length - 1, 1);
+        fileName = fileArr.join(".") + ` (${copyNumber})` + `.${fileFormat}`;
+        copyNumber++;
+      }
+      let blob = file.slice(0, file.size, file.type);
+      file = new File([blob], fileName, { type: file.type });
+      let userId = firebase.auth().currentUser.uid;
+      var storageRef = firebase.storage().ref();
+      var ref = storageRef.child(`uploads/${userId}/${fileName}`);
+      let snapshot = await ref.put(file);
+      await this._checkUploadComplete(snapshot.metadata.fullPath);
+    } catch (err) {
+      console.log(err.message);
+      this._showToast({ text: "_uploadFile" });
+    }
+  }
+
+  async _uploadFiles(files) {
+    try {
+      this.loading = true;
+      this.loadingText = "Идет обработка";
+      let uploads = [];
+      files.forEach(file => {
+        uploads.push(this._uploadFile(file));
+      });
+      await Promise.all(uploads);
+      this.loading = false;
+      this.input.value = "";
+      this.updateList();
+    } catch (err) {
+      console.log(err.message);
+      this._showToast({ text: "Возникла ошибка при обработке файлов" });
+    }
   }
 }
 

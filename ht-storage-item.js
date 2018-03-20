@@ -73,7 +73,7 @@ class HTStorageItem extends LitElement {
       this._onChange(e);
     }}></paper-checkbox>
         </div>
-        <div class="preview"><img src=${data.URL}></div>
+        <div class="preview"><img src=${data.thumbURL}></div>
         <div class="name" title="${data.name}">${data.name}</div>
         <div class="size">${
           data.size ? this._sizeFormat(data.size, true) : ""
@@ -111,8 +111,6 @@ class HTStorageItem extends LitElement {
     this.selected = e.target.checked;
   }
 
-  // return (this.shadowRoot.querySelector("paper-checkbox").checked = false);
-
   _sizeFormat(bytes, si) {
     var thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
@@ -127,6 +125,48 @@ class HTStorageItem extends LitElement {
       ++u;
     } while (Math.abs(bytes) >= thresh && u < units.length - 1);
     return bytes.toFixed(1) + " " + units[u];
+  }
+
+  async delete() {
+    try {
+      var storageRef = firebase.storage().ref();
+      var ref = storageRef.child(
+        `uploads/${this.data.userId}/${this.data.name}`
+      );
+      await ref.delete();
+      await this._checkDeleteComplete();
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+
+  async _checkDeleteComplete() {
+    try {
+      let fullPath = this.data.fullPath;
+      let unsubscription;
+      let promise = new Promise((resolve, reject) => {
+        unsubscription = firebase
+          .firestore()
+          .collection("uploads")
+          .where("fullPath", "==", fullPath)
+          .onSnapshot(snapshot => {
+            if (!snapshot.exists) {
+              resolve();
+            } else {
+              snapshot.docChanges.forEach(change => {
+                if (change.type === "removed") {
+                  let doc = change.doc.data();
+                  if (doc.fullPath == fullPath) resolve();
+                }
+              });
+            }
+          });
+      });
+      await promise;
+      unsubscription();
+    } catch (err) {
+      console.log(err.message);
+    }
   }
 }
 
