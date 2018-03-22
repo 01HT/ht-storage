@@ -1,8 +1,6 @@
 "use strict";
 import { LitElement, html } from "@polymer/lit-element";
-import { repeat } from "lit-html/lib/repeat.js";
 import "@polymer/paper-checkbox/paper-checkbox.js";
-import "@polymer/paper-styles/default-theme.js";
 
 class HTStorageItem extends LitElement {
   render({ data, selected }) {
@@ -17,6 +15,7 @@ class HTStorageItem extends LitElement {
         #container {
             display:flex;
             align-items: center;
+            height:48px;
         }
 
         #container > div {
@@ -40,7 +39,8 @@ class HTStorageItem extends LitElement {
           display:block;
           width:auto;
           max-width:64px;
-          height:32px;
+          height:auto;
+          max-height: 32px;
         }
 
         .name {
@@ -52,7 +52,7 @@ class HTStorageItem extends LitElement {
         }
 
         .type {
-          width: 70px;
+          width: 80px;
         }
 
         .date {
@@ -135,6 +135,7 @@ class HTStorageItem extends LitElement {
       );
       await ref.delete();
       await this._checkDeleteComplete();
+      this.selected = false;
     } catch (err) {
       console.log(err.message);
     }
@@ -150,16 +151,15 @@ class HTStorageItem extends LitElement {
           .collection("uploads")
           .where("fullPath", "==", fullPath)
           .onSnapshot(snapshot => {
-            if (!snapshot.exists) {
-              resolve();
-            } else {
-              snapshot.docChanges.forEach(change => {
-                if (change.type === "removed") {
-                  let doc = change.doc.data();
-                  if (doc.fullPath == fullPath) resolve();
-                }
-              });
-            }
+            snapshot.docChanges.forEach(change => {
+              if (change.type === "added") {
+                if (change.doc.data() === null) resolve();
+              }
+              if (change.type === "removed") {
+                let doc = change.doc.data();
+                if (doc.fullPath == fullPath) resolve();
+              }
+            });
           });
       });
       await promise;

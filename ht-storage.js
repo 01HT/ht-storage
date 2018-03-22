@@ -1,12 +1,12 @@
 "use strict";
 import { LitElement, html } from "@polymer/lit-element";
 import { repeat } from "lit-html/lib/repeat.js";
-import "@polymer/paper-input/paper-input.js";
 import "@polymer/paper-button";
 import "@polymer/iron-iconset-svg";
 import "@polymer/iron-icon";
 import "@polymer/paper-styles/default-theme.js";
 import "@polymer/paper-spinner/paper-spinner.js";
+import "@polymer/paper-checkbox/paper-checkbox.js";
 import "ht-storage/ht-storage-item.js";
 
 class HTStorage extends LitElement {
@@ -107,7 +107,7 @@ class HTStorage extends LitElement {
         }
 
         .type {
-          width: 70px;
+          width: 80px;
         }
 
         .date {
@@ -133,31 +133,33 @@ class HTStorage extends LitElement {
           padding:16px;
         }
 
-        #loading {
-          position:absolute;
+        #loading-container {
+          position: absolute;
           top:0;
-          right:0;
           left:0;
+          right:0;
           bottom:0;
           display:flex;
           justify-content: center;
           align-items:center;
-          background: rgba(0, 0, 0, 0.5);
-          z-index:1;
         }
 
-        #loading-card {
+        #loading {
+          display:flex;
+          background: rgba(0, 0, 0, 0.5);
+          z-index:1;
           background: #fff;
           padding:16px;
-          display:flex;
-          justify-content: center;
-          align-items:center;
           border-radius:3px;
+          box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+          0 1px 5px 0 rgba(0, 0, 0, 0.12),
+          0 3px 1px -2px rgba(0, 0, 0, 0.2);
         }
 
         #loading-text {
           font-size: 14px;
           margin-left: 8px;
+          line-height: 24px;
           font-weight: 400;
           color:var(--secondary-text-color);
         }
@@ -165,6 +167,14 @@ class HTStorage extends LitElement {
         paper-spinner {
           width: 24px;
           height: 24px;
+        }
+
+        #delete[disabled] {
+          color: #ccc;
+        }
+
+        #upload[disabled] {
+          background: #ccc;
         }
 
         [hidden] {
@@ -186,21 +196,25 @@ class HTStorage extends LitElement {
           </svg>
       </iron-iconset-svg>
       <div id="container">
-        <div id="loading" hidden?=${!loading}>
-          <div id="loading-card">
+          <div id="loading-container" hidden?=${!loading}>
+            <div id="loading">
             <paper-spinner active></paper-spinner>
             <div id="loading-text">${loadingText}</div>
           </div>
-        </div>
+          </div>
         <div id="actions">
-          <paper-button id="delete" on-click=${e => {
-            this._deleteSelected();
-          }} hidden?=${
+          <paper-button id="delete" disabled?=${
+            loading ? true : false
+          } on-click=${e => {
+      this._deleteSelected();
+    }} hidden?=${
       this.selected.length > 0 ? false : true
     }><iron-icon icon="ht-storage-icons:delete"></iron-icon>Удалить</paper-button>
-          <paper-button raised on-click=${e => {
-            this._openSelector();
-          }}><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить файл</paper-button>
+          <paper-button id="upload" raised disabled?=${
+            loading ? true : false
+          } on-click=${e => {
+      this._openSelector();
+    }}><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить файл</paper-button>
           <input type="file" multiple accept="image/*" on-change=${e => {
             this._inputChanged();
           }} hidden>
@@ -261,7 +275,6 @@ class HTStorage extends LitElement {
 
   ready() {
     super.ready();
-    this.updateList();
   }
 
   get input() {
@@ -300,6 +313,8 @@ class HTStorage extends LitElement {
 
   async _deleteSelected() {
     try {
+      this.loadingText = "Идет удаление файлов";
+      this.loading = true;
       let promises = [];
       this.selected.forEach(item => {
         promises.push(item.delete());
@@ -340,22 +355,22 @@ class HTStorage extends LitElement {
       this.loadingText = "Обновление списка файлов";
       this.loading = true;
       let items = [];
+      let userId = firebase.auth().currentUser.uid;
       let snapshot = await firebase
         .firestore()
         .collection("uploads")
-        .where("userId", "==", firebase.auth().currentUser.uid)
+        .where("userId", "==", userId)
         .orderBy("created", "desc")
         .get();
       snapshot.forEach(function(doc) {
         let data = doc.data();
-        data.selected = false;
         items.push(data);
       });
       this.items = items;
       this._resetToggle();
       this.loading = false;
     } catch (err) {
-      console.log("UpdateList: ", error);
+      console.log("UpdateList: ", err);
     }
   }
 
@@ -376,12 +391,6 @@ class HTStorage extends LitElement {
                   let doc = change.doc.data();
                   if (doc.fullPath == fullPath) resolve();
                 }
-                // if (change.type === "modified") {
-                //   console.log("Modified city: ", change.doc.data());
-                // }
-                // if (change.type === "removed") {
-                //   console.log("Removed city: ", change.doc.data());
-                // }
               });
             }
           });
@@ -460,6 +469,14 @@ class HTStorage extends LitElement {
       console.log(err.message);
       this._showToast({ text: "Возникла ошибка при обработке файлов" });
     }
+  }
+
+  getSelectedImageSources() {
+    let sources = [];
+    this.selected.forEach(item => {
+      sources.push(item.data.URL);
+    });
+    return sources;
   }
 }
 

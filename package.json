@@ -6,6 +6,12 @@
   "author": "maksimyurkov <yurkov.maksim.sergeevich@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@polymer/lit-element": "@next"
+    "@polymer/lit-element": "@next",
+    "@polymer/paper-checkbox": "@next",
+    "@polymer/paper-button": "@next",
+    "@polymer/iron-iconset-svg": "@next",
+    "@polymer/iron-icon": "@next",
+    "@polymer/paper-styles": "@next",
+    "@polymer/paper-spinner": "@next"
   }
 }
