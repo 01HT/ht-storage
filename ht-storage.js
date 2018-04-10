@@ -296,6 +296,14 @@ class HTStorage extends LitElement {
     this.selected = items;
   }
 
+  _unselectAll() {
+    let items = [];
+    let elems = this.shadowRoot.querySelectorAll("ht-storage-item");
+    elems.forEach(elem => {
+      elem.selected = false;
+    });
+  }
+
   _resetToggle() {
     let checkbox = this.shadowRoot.querySelector("paper-checkbox");
     if (checkbox.checked) checkbox.click();
@@ -352,6 +360,7 @@ class HTStorage extends LitElement {
 
   async updateList() {
     try {
+      this._unselectAll();
       this.loadingText = "Обновление списка файлов";
       this.loading = true;
       let items = [];
