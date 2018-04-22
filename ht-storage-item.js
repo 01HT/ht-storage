@@ -130,40 +130,12 @@ class HTStorageItem extends LitElement {
   async delete() {
     try {
       var storageRef = firebase.storage().ref();
-      var ref = storageRef.child(
-        `uploads/${this.data.userId}/${this.data.name}`
-      );
-      await ref.delete();
-      await this._checkDeleteComplete();
+      await firebase
+        .firestore()
+        .collection("uploads")
+        .doc(this.data.id)
+        .delete();
       this.selected = false;
-    } catch (err) {
-      console.log(err.message);
-    }
-  }
-
-  async _checkDeleteComplete() {
-    try {
-      let fullPath = this.data.fullPath;
-      let unsubscription;
-      let promise = new Promise((resolve, reject) => {
-        unsubscription = firebase
-          .firestore()
-          .collection("uploads")
-          .where("fullPath", "==", fullPath)
-          .onSnapshot(snapshot => {
-            snapshot.docChanges.forEach(change => {
-              if (change.type === "added") {
-                if (change.doc.data() === null) resolve();
-              }
-              if (change.type === "removed") {
-                let doc = change.doc.data();
-                if (doc.fullPath == fullPath) resolve();
-              }
-            });
-          });
-      });
-      await promise;
-      unsubscription();
     } catch (err) {
       console.log(err.message);
     }
