@@ -3,7 +3,7 @@ import { LitElement, html } from "@polymer/lit-element";
 import "@polymer/paper-checkbox/paper-checkbox.js";
 
 class HTStorageItem extends LitElement {
-  render({ data, selected }) {
+  _render({ data, selected }) {
     return html`
       <style>
         :host {
