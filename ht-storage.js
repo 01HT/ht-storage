@@ -11,7 +11,7 @@ import "ht-storage/ht-storage-item.js";
 import { callFirebaseHTTPFunction } from "ht-client-helper-functions";
 
 class HTStorage extends LitElement {
-  render({ items, selected, loading, loadingText }) {
+  _render({ items, selected, loading, loadingText }) {
     return html`
       <style>
         :host {
