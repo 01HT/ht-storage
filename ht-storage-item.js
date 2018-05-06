@@ -80,7 +80,7 @@ class HTStorageItem extends LitElement {
         }</div>
         <div class="type">${data.type}</div>
         <div class="date">${
-          data.created ? data.created.toLocaleDateString() : ""
+          data.created ? data.created.toDate().toLocaleDateString() : ""
         }</div>
       </div>
   `;
