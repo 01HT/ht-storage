@@ -6,13 +6,13 @@
   "author": "maksimyurkov <yurkov.maksim.sergeevich@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@polymer/lit-element": "@next",
-    "@polymer/paper-checkbox": "@next",
-    "@polymer/paper-button": "@next",
-    "@polymer/iron-iconset-svg": "@next",
-    "@polymer/iron-icon": "@next",
-    "@polymer/paper-styles": "@next",
-    "@polymer/paper-spinner": "@next",
+    "@polymer/lit-element": "^0.5.1",
+    "@polymer/paper-checkbox": "^3.0.0-pre.18",
+    "@polymer/paper-button": "^3.0.0-pre.18",
+    "@polymer/iron-iconset-svg": "^3.0.0-pre.18",
+    "@polymer/iron-icon": "^3.0.0-pre.18",
+    "@polymer/paper-styles": "^3.0.0-pre.18",
+    "@polymer/paper-spinner": "^3.0.0-pre.18",
     "ht-image": "https://github.com/maksimyurkov/ht-image",
     "ht-client-helper-functions":
       "https://github.com/maksimyurkov/ht-client-helper-functions"
