@@ -7,8 +7,8 @@ import "@polymer/iron-icon";
 import "@polymer/paper-styles/default-theme.js";
 import "@polymer/paper-spinner/paper-spinner.js";
 import "@polymer/paper-checkbox/paper-checkbox.js";
-import "ht-storage/ht-storage-item.js";
-import { callFirebaseHTTPFunction } from "ht-client-helper-functions";
+import "./ht-storage-item.js";
+import { callFirebaseHTTPFunction } from "@01ht/ht-client-helper-functions";
 
 class HTStorage extends LitElement {
   _render({ items, selected, loading, loadingText }) {

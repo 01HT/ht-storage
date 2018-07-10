@@ -1,10 +1,10 @@
 {
-  "name": "ht-storage",
+  "name": "@01ht/ht-storage",
   "version": "1.0.0",
   "main": "ht-storage.js",
-  "repository": "https://github.com/maksimyurkov/ht-storage",
-  "author": "maksimyurkov <yurkov.maksim.sergeevich@gmail.com>",
-  "license": "MIT",
+  "repository": "01ht/ht-storage",
+  "author": "01ht Ltd",
+  "license": "UNLICENSED",
   "dependencies": {
     "@polymer/lit-element": "^0.5.1",
     "@polymer/paper-checkbox": "^3.0.0-pre.18",
@@ -13,8 +13,7 @@
     "@polymer/iron-icon": "^3.0.0-pre.18",
     "@polymer/paper-styles": "^3.0.0-pre.18",
     "@polymer/paper-spinner": "^3.0.0-pre.18",
-    "ht-image": "https://github.com/maksimyurkov/ht-image",
-    "ht-client-helper-functions":
-      "https://github.com/maksimyurkov/ht-client-helper-functions"
+    "@01ht/ht-image": "^1.0.0",
+    "@01ht/ht-client-helper-functions": "^1.0.0"
   }
 }
