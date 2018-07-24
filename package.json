@@ -1,6 +1,6 @@
 {
   "name": "@01ht/ht-storage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "ht-storage.js",
   "repository": "01ht/ht-storage",
   "author": "01ht Ltd",

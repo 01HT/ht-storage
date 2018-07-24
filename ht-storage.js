@@ -8,7 +8,11 @@ import "@polymer/paper-styles/default-theme.js";
 import "@polymer/paper-spinner/paper-spinner.js";
 import "@polymer/paper-checkbox/paper-checkbox.js";
 import "./ht-storage-item.js";
-import { callFirebaseHTTPFunction } from "@01ht/ht-client-helper-functions";
+import "./cloudinary-widget.js";
+import {
+  callFirebaseHTTPFunction,
+  callTestHTTPFunction
+} from "@01ht/ht-client-helper-functions";
 
 class HTStorage extends LitElement {
   _render({ items, selected, loading, loadingText }) {
@@ -28,6 +32,10 @@ class HTStorage extends LitElement {
           height:36px;
         }
 
+        strong {
+          font-weight:500;
+        }
+
         paper-button#delete {
           color: var(--fail-color);
           background:none;
@@ -40,6 +48,11 @@ class HTStorage extends LitElement {
         #container {
           display:flex;
           flex-direction:column;
+          border: 1px solid var(--divider-color);
+        }
+
+        #support {
+          padding-bottom:24px;
         }
 
         #actions {
@@ -88,15 +101,12 @@ class HTStorage extends LitElement {
         }
 
         .preview {
-          width:84px;
+          width:64px;
           position:relative;
         }
 
-        .preview img {
-          display:block;
-          width:auto;
-          max-width:64px;
-          height:32px;
+        .link {
+          width: 24px;
         }
 
         .name {
@@ -108,6 +118,10 @@ class HTStorage extends LitElement {
         }
 
         .type {
+          width: 80px;
+        }
+
+        .dimension {
           width: 80px;
         }
 
@@ -196,6 +210,9 @@ class HTStorage extends LitElement {
               </defs>
           </svg>
       </iron-iconset-svg>
+      <div id="support">
+        <strong>Поддерживаются</strong>: .svg .webp .png .jpg .gif .mp4 .webm .flv .mov .ogv .3gp .3g2 .wmv .mpeg .mkv .avi | < 4MB
+      </div>
       <div id="container">
           <div id="loading-container" hidden?=${!loading}>
             <div id="loading">
@@ -209,33 +226,34 @@ class HTStorage extends LitElement {
           } on-click=${e => {
       this._deleteSelected();
     }} hidden?=${
-      this.selected.length > 0 ? false : true
+      selected.length > 0 ? false : true
     }><iron-icon icon="ht-storage-icons:delete"></iron-icon>Удалить</paper-button>
           <paper-button id="upload" raised disabled?=${
             loading ? true : false
           } on-click=${e => {
-      this._openSelector();
-    }}><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить файл</paper-button>
-          <input type="file" multiple accept="image/gif, image/tiff, image/jpeg, image/png, image/svg+xml, image/tiff, image/webp" on-change=${e => {
-            this._inputChanged();
-          }} hidden>
+      this._openUploadWidget();
+    }}><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить</paper-button>
         </div>
         <div id="table">
           <div id="scroller">
             <div id="head">
               <div class="checkbox">
-                <paper-checkbox noink onclick="${e => {
+                <paper-checkbox noink onclick=${e => {
                   this._toggleSelectAll(e);
-                }}"></paper-checkbox>
+                }}></paper-checkbox>
               </div>
               <div class="preview"></div>
-              <div class="name">Название</div>
+              <div class="link"></div>
+              <div class="name">Имя файла</div>
               <div class="size">Размер</div>
               <div class="type">Тип</div>
+              <div class="dimension">Размерность</div>
               <div class="date">Дата</div>
             </div>
               <div id="list">
-                <div id="no-items" hidden?=${items.length === 0 ? false : true}>
+                <div id="no-items" hidden?=${
+                  items.length === 0 && !loading ? false : true
+                }>
                 Нет файлов
               </div>
                 ${repeat(
@@ -278,16 +296,60 @@ class HTStorage extends LitElement {
     super.ready();
   }
 
-  get input() {
-    return this.shadowRoot.querySelector("input[type=file]");
+  _openUploadWidget() {
+    let uid = firebase.auth().currentUser.uid;
+    let widget = cloudinary.openUploadWidget(
+      {
+        cloudName: window.cloudinaryCloudName,
+        apiKey: window.cloudinaryAPIKey,
+        uploadSignature: this._getUploadSignature,
+        use_filename: true,
+        folder: `uploads/${uid}/`,
+        upload_preset: "uploads"
+      },
+      (error, result) => {
+        if (error) {
+          widget.close();
+          this._showToast({
+            text: "Возникла ошибка при обработке файлов"
+          });
+        }
+        if (result && result.data && result.data.event === "queues-end") {
+          widget.close();
+          this.updateList();
+        }
+      }
+    );
   }
 
-  _openSelector() {
-    this.input.click();
+  async _getUploadSignature(callback, params_to_sign) {
+    try {
+      let idToken = await firebase.auth().currentUser.getIdToken();
+
+      let functionOptions = {
+        name: "httpsUploadsGetSignatureForUserFileUpload",
+        options: {
+          method: "POST",
+          headers: new Headers({
+            "Content-Type": "application/json"
+          }),
+          body: JSON.stringify({
+            idToken: idToken,
+            cloudinaryParams: params_to_sign
+          })
+        }
+      };
+      // callTestHTTPFunction;
+      let signature = await callFirebaseHTTPFunction(functionOptions);
+      callback(signature);
+    } catch (err) {
+      console.log(err.message);
+      this._showToast({ text: "Ошибка формирования подписи" });
+    }
   }
 
   _toggleSelectAll(e) {
-    let checked = e.target.checked;
+    let checked = !e.target.checked;
     let items = [];
     let elems = this.shadowRoot.querySelectorAll("ht-storage-item");
     elems.forEach(elem => {
@@ -298,10 +360,9 @@ class HTStorage extends LitElement {
   }
 
   _unselectAll() {
-    let items = [];
     let elems = this.shadowRoot.querySelectorAll("ht-storage-item");
     elems.forEach(elem => {
-      elem.selected = false;
+      if (elem.selected) elem.selected = false;
     });
   }
 
@@ -324,11 +385,30 @@ class HTStorage extends LitElement {
     try {
       this.loadingText = "Идет удаление файлов";
       this.loading = true;
-      let promises = [];
+      let idToken = await firebase.auth().currentUser.getIdToken();
+      let items = [];
       this.selected.forEach(item => {
-        promises.push(item.delete());
+        items.push({
+          public_id: item.data.public_id,
+          resource_type: item.data.resource_type
+        });
       });
-      await Promise.all(promises);
+      let functionOptions = {
+        name: "httpsUploadsDeleteFiles",
+        options: {
+          method: "POST",
+          headers: new Headers({
+            "Content-Type": "application/json"
+          }),
+          body: JSON.stringify({
+            idToken: idToken,
+            items: items
+          })
+        }
+      };
+      // callTestHTTPFunction;
+      await callFirebaseHTTPFunction(functionOptions);
+      this.loading = false;
       this.updateList();
     } catch (err) {
       console.log("_deleteSelected: ", err);
@@ -345,38 +425,26 @@ class HTStorage extends LitElement {
     );
   }
 
-  _inputChanged(e) {
-    let files = this.input.files;
-    if (files === undefined) return;
-    let temp = [];
-    for (let file of files) {
-      temp.push(file);
-      if (file.type.split("/")[0] !== "image") {
-        this._showToast({ text: "Загружать можно только изображения" });
-        return;
-      }
-    }
-    this._uploadFiles(temp);
-  }
-
   async updateList() {
     try {
       this._unselectAll();
       this.loadingText = "Обновление списка файлов";
       this.loading = true;
-      let items = [];
-      let userId = firebase.auth().currentUser.uid;
-      let snapshot = await firebase
-        .firestore()
-        .collection("uploads")
-        .where("userId", "==", userId)
-        .orderBy("created", "desc")
-        .get();
-      snapshot.forEach(function(doc) {
-        let data = doc.data();
-        data.id = doc.id;
-        items.push(data);
-      });
+      let idToken = await firebase.auth().currentUser.getIdToken();
+      let functionOptions = {
+        name: "httpsUploadsGetFileList",
+        options: {
+          method: "POST",
+          headers: new Headers({
+            "Content-Type": "application/json"
+          }),
+          body: JSON.stringify({
+            idToken: idToken
+          })
+        }
+      };
+      // callTestHTTPFunction;
+      let items = await callFirebaseHTTPFunction(functionOptions);
       this.items = items;
       this._resetToggle();
       this.loading = false;
@@ -385,44 +453,10 @@ class HTStorage extends LitElement {
     }
   }
 
-  async _uploadFile(file) {
-    try {
-      let formData = new FormData();
-      formData.append("myfile", file);
-      let functionOptions = {
-        name: "httpsUploadsAddImage",
-        options: { method: "POST", body: formData },
-        authorization: true
-      };
-      await callFirebaseHTTPFunction(functionOptions);
-    } catch (err) {
-      console.log(err.message);
-      this._showToast({ text: "_uploadFile" });
-    }
-  }
-
-  async _uploadFiles(files) {
-    try {
-      this.loading = true;
-      this.loadingText = "Идет обработка";
-      let uploads = [];
-      files.forEach(file => {
-        uploads.push(this._uploadFile(file));
-      });
-      await Promise.all(uploads);
-      this.loading = false;
-      this.input.value = "";
-      this.updateList();
-    } catch (err) {
-      console.log(err.message);
-      this._showToast({ text: "Возникла ошибка при обработке файлов" });
-    }
-  }
-
-  getSelectedImageSources() {
+  getSelectedItems() {
     let sources = [];
     this.selected.forEach(item => {
-      sources.push(item.data.fileURL);
+      sources.push(item.data);
     });
     return sources;
   }

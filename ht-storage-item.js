@@ -1,9 +1,12 @@
 "use strict";
 import { LitElement, html } from "@polymer/lit-element";
 import "@polymer/paper-checkbox/paper-checkbox.js";
+import "@polymer/iron-iconset-svg";
+import "@polymer/iron-icon";
 
 class HTStorageItem extends LitElement {
   _render({ data, selected }) {
+    if (data.public_id === undefined) return;
     return html`
       <style>
         :host {
@@ -12,10 +15,14 @@ class HTStorageItem extends LitElement {
           position:relative;
         }
 
+        a {
+          color:var(--secondary-text-color);
+        }
+
         #container {
             display:flex;
             align-items: center;
-            height:48px;
+            height:64px;
         }
 
         #container > div {
@@ -31,16 +38,20 @@ class HTStorageItem extends LitElement {
         }
 
         .preview {
-          width:84px;
+          width:64px;
           position:relative;
         }
 
         .preview img {
           display:block;
           width:auto;
-          max-width:64px;
+          max-width:48px;
           height:auto;
-          max-height: 32px;
+          max-height: 64px;
+        }
+
+        .link {
+          width: 24px;
         }
 
         .name {
@@ -52,6 +63,10 @@ class HTStorageItem extends LitElement {
         }
 
         .type {
+          width: 80px;
+        }
+
+        .dimension {
           width: 80px;
         }
 
@@ -67,21 +82,36 @@ class HTStorageItem extends LitElement {
             padding: 8px 24px;
         }
       </style>
+      <iron-iconset-svg size="24" name="ht-storage-item-icons">
+          <svg>
+              <defs>
+                <g id="link"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"></path></g>
+              </defs>
+          </svg>
+      </iron-iconset-svg>
       <div id="container">
         <div class="checkbox">
-            <paper-checkbox noink checked?=${selected} onclick=${e => {
+            <paper-checkbox noink checked?=${selected} on-checked-changed=${e => {
       this._onChange(e);
     }}></paper-checkbox>
         </div>
-        <div class="preview"><img src=${data.thumbURL}></div>
-        <div class="name" title="${data.name}">${data.name}</div>
-        <div class="size">${
-          data.size ? this._sizeFormat(data.size, true) : ""
-        }</div>
-        <div class="type">${data.type}</div>
-        <div class="date">${
-          data.created ? data.created.toDate().toLocaleDateString() : ""
-        }</div>
+        <div class="preview"><img src="${window.cloudinaryURL}/${
+      data.resource_type
+    }/upload/c_scale,h_128,q_auto/v${data.version}/${data.public_id}.jpg"></div>
+          <div class="link"><a target="_blank" href="${window.cloudinaryURL}/${
+      data.resource_type
+    }/upload/v${data.version}/${data.public_id}.${data.format}">
+        <iron-icon icon="ht-storage-item-icons:link"></iron-icon>
+        </a></div>
+            <div class="name" title="${data.name}">${data.secure_url.substr(
+      data.secure_url.lastIndexOf("/") + 1
+    )}</div>
+        <div class="size">${this._sizeFormat(data.bytes, true)}</div>
+        <div class="type">${data.resource_type}</div>
+        <div class="dimension">${data.width} x ${data.height}</div>
+        <div class="date">${new Date(
+          data.created_at
+        ).toLocaleDateString()}</div>
       </div>
   `;
   }
@@ -125,20 +155,6 @@ class HTStorageItem extends LitElement {
       ++u;
     } while (Math.abs(bytes) >= thresh && u < units.length - 1);
     return bytes.toFixed(1) + " " + units[u];
-  }
-
-  async delete() {
-    try {
-      var storageRef = firebase.storage().ref();
-      await firebase
-        .firestore()
-        .collection("uploads")
-        .doc(this.data.id)
-        .delete();
-      this.selected = false;
-    } catch (err) {
-      console.log(err.message);
-    }
   }
 }
 
