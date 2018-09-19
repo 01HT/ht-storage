@@ -1,21 +1,24 @@
 "use strict";
 import { LitElement, html } from "@polymer/lit-element";
-import { repeat } from "lit-html/lib/repeat.js";
+import { repeat } from "lit-html/directives/repeat.js";
 import "@polymer/paper-button";
 import "@polymer/iron-iconset-svg";
 import "@polymer/iron-icon";
 import "@polymer/paper-styles/default-theme.js";
-import "@polymer/paper-spinner/paper-spinner.js";
 import "@polymer/paper-checkbox/paper-checkbox.js";
-import "./ht-storage-item.js";
+
+import "@01ht/ht-spinner";
 import "./cloudinary-widget.js";
 import {
-  callFirebaseHTTPFunction,
-  callTestHTTPFunction
+  callFirebaseHTTPFunction
+  // callTestHTTPFunction
 } from "@01ht/ht-client-helper-functions";
 
+import "./ht-storage-item.js";
+
 class HTStorage extends LitElement {
-  _render({ items, selected, loading, loadingText }) {
+  render() {
+    const { items, selected, loading, loadingText } = this;
     return html`
       <style>
         :host {
@@ -148,7 +151,7 @@ class HTStorage extends LitElement {
           padding:16px;
         }
 
-        #loading-container {
+        ht-spinner {
           position: absolute;
           top:0;
           left:0;
@@ -157,31 +160,6 @@ class HTStorage extends LitElement {
           display:flex;
           justify-content: center;
           align-items:center;
-        }
-
-        #loading {
-          display:flex;
-          background: rgba(0, 0, 0, 0.5);
-          z-index:1;
-          background: #fff;
-          padding:16px;
-          border-radius:3px;
-          box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
-          0 1px 5px 0 rgba(0, 0, 0, 0.12),
-          0 3px 1px -2px rgba(0, 0, 0, 0.2);
-        }
-
-        #loading-text {
-          font-size: 14px;
-          margin-left: 8px;
-          line-height: 24px;
-          font-weight: 400;
-          color:var(--secondary-text-color);
-        }
-
-        paper-spinner {
-          width: 24px;
-          height: 24px;
         }
 
         #delete[disabled] {
@@ -211,26 +189,20 @@ class HTStorage extends LitElement {
           </svg>
       </iron-iconset-svg>
       <div id="support">
-        <strong>Поддерживаются</strong>: .svg .webp .png .jpg .gif .mp4 .webm .flv .mov .ogv .3gp .3g2 .wmv .mpeg .mkv .avi | < 4MB
+        <strong>Поддерживаются</strong>: .svg .webp .png .jpg .gif .mp4 .webm .flv .mov .ogv .3gp .3g2 .wmv .mpeg .mkv .avi | < 10MB
       </div>
       <div id="container">
-          <div id="loading-container" hidden?=${!loading}>
-            <div id="loading">
-            <paper-spinner active></paper-spinner>
-            <div id="loading-text">${loadingText}</div>
-          </div>
-          </div>
         <div id="actions">
-          <paper-button id="delete" disabled?=${
+          <paper-button id="delete" ?disabled=${
             loading ? true : false
-          } on-click=${e => {
+          } @click=${e => {
       this._deleteSelected();
-    }} hidden?=${
+    }} ?hidden=${
       selected.length > 0 ? false : true
     }><iron-icon icon="ht-storage-icons:delete"></iron-icon>Удалить</paper-button>
-          <paper-button id="upload" raised disabled?=${
+          <paper-button id="upload" raised ?disabled=${
             loading ? true : false
-          } on-click=${e => {
+          } @click=${e => {
       this._openUploadWidget();
     }}><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить</paper-button>
         </div>
@@ -238,7 +210,7 @@ class HTStorage extends LitElement {
           <div id="scroller">
             <div id="head">
               <div class="checkbox">
-                <paper-checkbox noink onclick=${e => {
+                <paper-checkbox noink @click=${e => {
                   this._toggleSelectAll(e);
                 }}></paper-checkbox>
               </div>
@@ -251,7 +223,7 @@ class HTStorage extends LitElement {
               <div class="date">Дата</div>
             </div>
               <div id="list">
-                <div id="no-items" hidden?=${
+                <div id="no-items" ?hidden=${
                   items.length === 0 && !loading ? false : true
                 }>
                 Нет файлов
@@ -259,7 +231,7 @@ class HTStorage extends LitElement {
                 ${repeat(
                   items,
                   item => html`
-              <ht-storage-item data=${item} on-click=${e => {
+              <ht-storage-item .data=${item} @click=${e => {
                     this.updateSelected();
                   }}></ht-storage-item>
           `
@@ -267,6 +239,7 @@ class HTStorage extends LitElement {
               </div>
           </div>
         </div>
+        <ht-spinner text=${loadingText} ?hidden=${!loading}></ht-spinner>
       </div>
   `;
   }
@@ -277,10 +250,10 @@ class HTStorage extends LitElement {
 
   static get properties() {
     return {
-      items: Array,
-      selected: Array,
-      loading: Boolean,
-      loadingText: String
+      items: { type: Array },
+      selected: { type: Array },
+      loading: { type: Boolean },
+      loadingText: { type: String }
     };
   }
 
@@ -292,10 +265,6 @@ class HTStorage extends LitElement {
     this.loadingText = "";
   }
 
-  ready() {
-    super.ready();
-  }
-
   _openUploadWidget() {
     let uid = firebase.auth().currentUser.uid;
     let widget = cloudinary.openUploadWidget(
@@ -303,9 +272,32 @@ class HTStorage extends LitElement {
         cloudName: window.cloudinaryCloudName,
         apiKey: window.cloudinaryAPIKey,
         uploadSignature: this._getUploadSignature,
+        showAdvancedOptions: false,
+        cropping: false,
+        sources: ["local", "url"],
         use_filename: true,
         folder: `uploads/${uid}/`,
-        upload_preset: "uploads"
+        upload_preset: "uploads",
+        styles: {
+          palette: {
+            window: "#FFFFFF",
+            windowBorder: "#A7A7A7",
+            tabIcon: "#414549",
+            menuIcons: "#414549",
+            textDark: "#414549",
+            textLight: "#FFFFFF",
+            link: "#7BAB44",
+            action: "#7BAB44",
+            inactiveTabIcon: "#414549",
+            error: "#F44235",
+            inProgress: "#7BAB44",
+            complete: "#20B832",
+            sourceBg: "#F5F5F5"
+          },
+          fonts: {
+            "'Roboto', normal": "https://fonts.googleapis.com/css?family=Roboto"
+          }
+        }
       },
       (error, result) => {
         if (error) {

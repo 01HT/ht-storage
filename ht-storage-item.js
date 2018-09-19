@@ -5,7 +5,8 @@ import "@polymer/iron-iconset-svg";
 import "@polymer/iron-icon";
 
 class HTStorageItem extends LitElement {
-  _render({ data, selected }) {
+  render() {
+    const { data, selected } = this;
     if (data.public_id === undefined) return;
     return html`
       <style>
@@ -91,7 +92,7 @@ class HTStorageItem extends LitElement {
       </iron-iconset-svg>
       <div id="container">
         <div class="checkbox">
-            <paper-checkbox noink checked?=${selected} on-checked-changed=${e => {
+            <paper-checkbox noink ?checked=${selected} @checked-changed=${e => {
       this._onChange(e);
     }}></paper-checkbox>
         </div>
@@ -103,7 +104,7 @@ class HTStorageItem extends LitElement {
     }/upload/v${data.version}/${data.public_id}.${data.format}">
         <iron-icon icon="ht-storage-item-icons:link"></iron-icon>
         </a></div>
-            <div class="name" title="${data.name}">${data.secure_url.substr(
+            <div class="name" title=${data.name}>${data.secure_url.substr(
       data.secure_url.lastIndexOf("/") + 1
     )}</div>
         <div class="size">${this._sizeFormat(data.bytes, true)}</div>
@@ -122,8 +123,8 @@ class HTStorageItem extends LitElement {
 
   static get properties() {
     return {
-      data: Object,
-      selected: Boolean
+      data: { type: Object },
+      selected: { type: Boolean }
     };
   }
 
