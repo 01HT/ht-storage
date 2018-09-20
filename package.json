@@ -12,7 +12,7 @@
     "@polymer/iron-iconset-svg": "^3.0.1",
     "@polymer/iron-icon": "^3.0.1",
     "@polymer/paper-styles": "^3.0.1",
-    "@01ht/ht-spinner": "^1.0.0",
-    "@01ht/ht-client-helper-functions": "^1.0.0"
+    "@01ht/ht-spinner": "01ht/ht-spinner",
+    "@01ht/ht-client-helper-functions": "01ht/ht-client-helper-functions"
   }
 }
