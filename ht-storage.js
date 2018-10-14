@@ -40,7 +40,7 @@ class HTStorage extends LitElement {
         }
 
         paper-button#delete {
-          color: var(--fail-color);
+          color: #F44336;
           background:none;
         }
 
