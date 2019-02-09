@@ -1,88 +1,89 @@
 "use strict";
-import { LitElement, html } from "@polymer/lit-element";
+import { LitElement, html, css } from "lit-element";
 import "@polymer/paper-checkbox/paper-checkbox.js";
 import "@polymer/iron-iconset-svg";
 import "@polymer/iron-icon";
 
 class HTStorageItem extends LitElement {
+  static styles = css`<style>
+    :host {
+      display: block;
+      box-sizing:border-box;
+      position:relative;
+    }
+
+    a {
+      color:var(--secondary-text-color);
+    }
+
+    #container {
+        display:flex;
+        align-items: center;
+        height:64px;
+    }
+
+    #container > div {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .checkbox {
+      display:flex;
+      justify-content: center;
+      width:64px;
+    }
+
+    .preview {
+      width:64px;
+      position:relative;
+    }
+
+    .preview img {
+      display:block;
+      width:auto;
+      max-width:48px;
+      height:auto;
+      max-height: 64px;
+    }
+
+    .link {
+      width: 24px;
+    }
+
+    .name {
+      width:200px;
+    }
+
+    .size {
+      width: 60px;
+    }
+
+    .type {
+      width: 80px;
+    }
+
+    .dimension {
+      width: 80px;
+    }
+
+    .date {
+      width: 70px;
+    }
+
+    .checkbox, .preview {
+      padding: 8px 0;
+    }
+
+    .name, .size, .type, .date {
+        padding: 8px 24px;
+    }
+  </style>`;
+
   render() {
     const { data, selected } = this;
     if (data.public_id === undefined) return;
     return html`
-      <style>
-        :host {
-          display: block;
-          box-sizing:border-box;
-          position:relative;
-        }
-
-        a {
-          color:var(--secondary-text-color);
-        }
-
-        #container {
-            display:flex;
-            align-items: center;
-            height:64px;
-        }
-
-        #container > div {
-          white-space: nowrap;
-          text-overflow: ellipsis;
-          overflow: hidden;
-        }
-
-        .checkbox {
-          display:flex;
-          justify-content: center;
-          width:64px;
-        }
-
-        .preview {
-          width:64px;
-          position:relative;
-        }
-
-        .preview img {
-          display:block;
-          width:auto;
-          max-width:48px;
-          height:auto;
-          max-height: 64px;
-        }
-
-        .link {
-          width: 24px;
-        }
-
-        .name {
-          width:200px;
-        }
-
-        .size {
-          width: 60px;
-        }
-
-        .type {
-          width: 80px;
-        }
-
-        .dimension {
-          width: 80px;
-        }
-
-        .date {
-          width: 70px;
-        }
-
-        .checkbox, .preview {
-          padding: 8px 0;
-        }
-
-        .name, .size, .type, .date {
-            padding: 8px 24px;
-        }
-      </style>
       <iron-iconset-svg size="24" name="ht-storage-item-icons">
           <svg>
               <defs>
@@ -92,9 +93,9 @@ class HTStorageItem extends LitElement {
       </iron-iconset-svg>
       <div id="container">
         <div class="checkbox">
-            <paper-checkbox noink ?checked=${selected} @checked-changed=${e => {
+            <paper-checkbox noink ?checked="${selected}" @checked-changed="${e => {
       this._onChange(e);
-    }}></paper-checkbox>
+    }}"></paper-checkbox>
         </div>
         <div class="preview"><img src="${window.cloudinaryURL}/${
       data.resource_type
@@ -104,7 +105,7 @@ class HTStorageItem extends LitElement {
     }/upload/v${data.version}/${data.public_id}.${data.format}">
         <iron-icon icon="ht-storage-item-icons:link"></iron-icon>
         </a></div>
-            <div class="name" title=${data.name}>${data.secure_url.substr(
+            <div class="name" title="${data.name}">${data.secure_url.substr(
       data.secure_url.lastIndexOf("/") + 1
     )}</div>
         <div class="size">${this._sizeFormat(data.bytes, true)}</div>
@@ -115,10 +116,6 @@ class HTStorageItem extends LitElement {
         ).toLocaleDateString()}</div>
       </div>
   `;
-  }
-
-  static get is() {
-    return "ht-storage-item";
   }
 
   static get properties() {
@@ -159,4 +156,4 @@ class HTStorageItem extends LitElement {
   }
 }
 
-customElements.define(HTStorageItem.is, HTStorageItem);
+customElements.define("ht-storage-item", HTStorageItem);

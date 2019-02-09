@@ -6,7 +6,7 @@
   "author": "01HT Ltd",
   "license": "UNLICENSED",
   "dependencies": {
-    "@polymer/lit-element": "^0.6.1",
+    "lit-element": "^2.0.1",
     "@polymer/paper-checkbox": "^3.0.1",
     "@polymer/paper-button": "^3.0.1",
     "@polymer/iron-iconset-svg": "^3.0.1",

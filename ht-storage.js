@@ -1,5 +1,5 @@
 "use strict";
-import { LitElement, html } from "@polymer/lit-element";
+import { LitElement, html, css } from "lit-element";
 import { repeat } from "lit-html/directives/repeat.js";
 import "@polymer/paper-button";
 import "@polymer/iron-iconset-svg";
@@ -17,10 +17,7 @@ import {
 import "./ht-storage-item.js";
 
 class HTStorage extends LitElement {
-  render() {
-    const { items, selected, loading, loadingText } = this;
-    return html`
-      <style>
+  static styles = css`<style>
         :host {
           display: block;
           box-sizing:border-box;
@@ -179,7 +176,11 @@ class HTStorage extends LitElement {
             padding:0;
           }
         }
-      </style>
+      </style>`;
+
+  render() {
+    const { items, selected, loading, loadingText } = this;
+    return html`
       <iron-iconset-svg size="24" name="ht-storage-icons">
           <svg>
               <defs>
@@ -193,26 +194,24 @@ class HTStorage extends LitElement {
       </div>
       <div id="container">
         <div id="actions">
-          <paper-button id="delete" ?disabled=${
+          <paper-button id="delete" ?disabled="${
             loading ? true : false
-          } @click=${e => {
-      this._deleteSelected();
-    }} ?hidden=${
+          }" @click="${this._deleteSelected}" ?hidden="${
       selected.length > 0 ? false : true
-    }><iron-icon icon="ht-storage-icons:delete"></iron-icon>Удалить</paper-button>
+    }"><iron-icon icon="ht-storage-icons:delete"></iron-icon>Удалить</paper-button>
           <paper-button id="upload" raised ?disabled=${
             loading ? true : false
-          } @click=${e => {
-      this._openUploadWidget();
-    }}><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить</paper-button>
+          } @click="${
+      this._openUploadWidget
+    }"><iron-icon icon="ht-storage-icons:file-upload"></iron-icon>Загрузить</paper-button>
         </div>
         <div id="table">
           <div id="scroller">
             <div id="head">
               <div class="checkbox">
-                <paper-checkbox noink @click=${e => {
+                <paper-checkbox noink @click="${e => {
                   this._toggleSelectAll(e);
-                }}></paper-checkbox>
+                }}"></paper-checkbox>
               </div>
               <div class="preview"></div>
               <div class="link"></div>
@@ -223,29 +222,25 @@ class HTStorage extends LitElement {
               <div class="date">Дата</div>
             </div>
               <div id="list">
-                <div id="no-items" ?hidden=${
+                <div id="no-items" ?hidden="${
                   items.length === 0 && !loading ? false : true
-                }>
+                }">
                 Нет файлов
               </div>
                 ${repeat(
                   items,
                   item => html`
-              <ht-storage-item .data=${item} @click=${e => {
-                    this.updateSelected();
-                  }}></ht-storage-item>
+              <ht-storage-item .data="${item}" @click="${
+                    this.updateSelected
+                  }"></ht-storage-item>
           `
                 )}
               </div>
           </div>
         </div>
-        <ht-spinner text=${loadingText} ?hidden=${!loading}></ht-spinner>
+        <ht-spinner text="${loadingText}" ?hidden="${!loading}"></ht-spinner>
       </div>
   `;
-  }
-
-  static get is() {
-    return "ht-storage";
   }
 
   static get properties() {
@@ -454,4 +449,4 @@ class HTStorage extends LitElement {
   }
 }
 
-customElements.define(HTStorage.is, HTStorage);
+customElements.define("ht-storage", HTStorage);
