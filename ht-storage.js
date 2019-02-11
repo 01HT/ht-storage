@@ -16,29 +16,28 @@ import {
 
 import "./ht-storage-item.js";
 
-class HTStorage extends LitElement {
-  static styles = css`<style>
-        :host {
-          display: block;
-          box-sizing:border-box;
-          position:relative;
-        }
+import { stylesBasicWebcomponents } from "@01ht/ht-theme/styles";
 
+class HTStorage extends LitElement {
+  static get styles() {
+    return [
+      stylesBasicWebcomponents,
+      css`
         paper-button {
           background: var(--accent-color);
           color: #fff;
           font-weight: 500;
           padding: 8px 16px;
-          height:36px;
+          height: 36px;
         }
 
         strong {
-          font-weight:500;
+          font-weight: 500;
         }
 
         paper-button#delete {
-          color: #F44336;
-          background:none;
+          color: #f44336;
+          background: none;
         }
 
         iron-icon {
@@ -46,63 +45,63 @@ class HTStorage extends LitElement {
         }
 
         #container {
-          display:flex;
-          flex-direction:column;
+          display: flex;
+          flex-direction: column;
           border: 1px solid var(--divider-color);
         }
 
         #support {
-          padding-bottom:24px;
+          padding-bottom: 24px;
         }
 
         #actions {
-          display:flex;
-          justify-content:flex-end;
-          padding:8px 16px;
+          display: flex;
+          justify-content: flex-end;
+          padding: 8px 16px;
           background: #f5f5f5;
           border-bottom: 1px solid var(--divider-color);
         }
 
         #table {
-          display:flex;
-          flex-direction:column;
-          overflow:auto;
+          display: flex;
+          flex-direction: column;
+          overflow: auto;
           position: relative;
-          min-height:300px;
+          min-height: 300px;
         }
 
         #scroller {
-          position:absolute;
-          display:flex;
+          position: absolute;
+          display: flex;
           flex-direction: column;
           min-width: 100%;
         }
 
         #head {
-          display:flex;
-          position:absolute;
-          top:0;
-          width:100%;
-          align-items:center;
+          display: flex;
+          position: absolute;
+          top: 0;
+          width: 100%;
+          align-items: center;
           background: #f5f5f5;
           border-bottom: 1px solid var(--divider-color);
         }
 
         #head > * {
-          color: rgba(0,0,0,0.64);
+          color: rgba(0, 0, 0, 0.64);
           font-size: 12px;
           font-weight: 500;
         }
 
         .checkbox {
-          display:flex;
+          display: flex;
           justify-content: center;
-          width:64px;
+          width: 64px;
         }
 
         .preview {
-          width:64px;
-          position:relative;
+          width: 64px;
+          position: relative;
         }
 
         .link {
@@ -110,7 +109,7 @@ class HTStorage extends LitElement {
         }
 
         .name {
-          width:200px;
+          width: 200px;
         }
 
         .size {
@@ -129,12 +128,16 @@ class HTStorage extends LitElement {
           width: 70px;
         }
 
-        .checkbox, .preview {
+        .checkbox,
+        .preview {
           padding: 8px 0;
         }
 
-        .name, .size, .type, .date {
-            padding: 8px 24px;
+        .name,
+        .size,
+        .type,
+        .date {
+          padding: 8px 24px;
         }
 
         #list {
@@ -143,20 +146,20 @@ class HTStorage extends LitElement {
 
         #no-items {
           display: flex;
-          color: rgba(0,0,0,0.64);
+          color: rgba(0, 0, 0, 0.64);
           font-size: 14px;
-          padding:16px;
+          padding: 16px;
         }
 
         ht-spinner {
           position: absolute;
-          top:0;
-          left:0;
-          right:0;
-          bottom:0;
-          display:flex;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          display: flex;
           justify-content: center;
-          align-items:center;
+          align-items: center;
         }
 
         #delete[disabled] {
@@ -168,15 +171,17 @@ class HTStorage extends LitElement {
         }
 
         [hidden] {
-          display:none !important;
+          display: none !important;
         }
 
-        @media (max-width:600px) {
+        @media (max-width: 600px) {
           :host {
-            padding:0;
+            padding: 0;
           }
         }
-      </style>`;
+      `
+    ];
+  }
 
   render() {
     const { items, selected, loading, loadingText } = this;

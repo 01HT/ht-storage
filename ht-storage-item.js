@@ -4,85 +4,89 @@ import "@polymer/paper-checkbox/paper-checkbox.js";
 import "@polymer/iron-iconset-svg";
 import "@polymer/iron-icon";
 
+import { stylesBasicWebcomponents } from "@01ht/ht-theme/styles";
+
 class HTStorageItem extends LitElement {
-  static styles = css`<style>
-    :host {
-      display: block;
-      box-sizing:border-box;
-      position:relative;
-    }
+  static get styles() {
+    return [
+      stylesBasicWebcomponents,
+      css`
+        a {
+          color: var(--secondary-text-color);
+        }
 
-    a {
-      color:var(--secondary-text-color);
-    }
+        #container {
+          display: flex;
+          align-items: center;
+          height: 64px;
+        }
 
-    #container {
-        display:flex;
-        align-items: center;
-        height:64px;
-    }
+        #container > div {
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
 
-    #container > div {
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
+        .checkbox {
+          display: flex;
+          justify-content: center;
+          width: 64px;
+        }
 
-    .checkbox {
-      display:flex;
-      justify-content: center;
-      width:64px;
-    }
+        .preview {
+          width: 64px;
+          position: relative;
+        }
 
-    .preview {
-      width:64px;
-      position:relative;
-    }
+        .preview img {
+          display: block;
+          width: auto;
+          max-width: 48px;
+          height: auto;
+          max-height: 64px;
+        }
 
-    .preview img {
-      display:block;
-      width:auto;
-      max-width:48px;
-      height:auto;
-      max-height: 64px;
-    }
+        .link {
+          width: 24px;
+        }
 
-    .link {
-      width: 24px;
-    }
+        .name {
+          width: 200px;
+        }
 
-    .name {
-      width:200px;
-    }
+        .size {
+          width: 60px;
+        }
 
-    .size {
-      width: 60px;
-    }
+        .type {
+          width: 80px;
+        }
 
-    .type {
-      width: 80px;
-    }
+        .dimension {
+          width: 80px;
+        }
 
-    .dimension {
-      width: 80px;
-    }
+        .date {
+          width: 70px;
+        }
 
-    .date {
-      width: 70px;
-    }
+        .checkbox,
+        .preview {
+          padding: 8px 0;
+        }
 
-    .checkbox, .preview {
-      padding: 8px 0;
-    }
-
-    .name, .size, .type, .date {
-        padding: 8px 24px;
-    }
-  </style>`;
+        .name,
+        .size,
+        .type,
+        .date {
+          padding: 8px 24px;
+        }
+      `
+    ];
+  }
 
   render() {
     const { data, selected } = this;
-    if (data.public_id === undefined) return;
     return html`
       <iron-iconset-svg size="24" name="ht-storage-item-icons">
           <svg>
@@ -129,6 +133,14 @@ class HTStorageItem extends LitElement {
     super();
     this.data = {};
     this.selected = false;
+  }
+
+  shouldUpdate(changedProperties) {
+    if (changedProperties.has("data")) {
+      if (this.data === undefined || this.data.public_id === undefined)
+        return false;
+    }
+    return true;
   }
 
   ready() {
