@@ -320,6 +320,10 @@ class HTStorage extends LitElement {
 
       let functionOptions = {
         name: "httpsUploadsGetSignatureForUserFileUpload",
+        projectId:
+          window.projectEnv === "prod"
+            ? "myaccount-01-ht"
+            : "myaccount-01-ht-dev",
         options: {
           method: "POST",
           headers: new Headers({
@@ -387,6 +391,10 @@ class HTStorage extends LitElement {
       });
       let functionOptions = {
         name: "httpsUploadsDeleteFiles",
+        projectId:
+          window.projectEnv === "prod"
+            ? "myaccount-01-ht"
+            : "myaccount-01-ht-dev",
         options: {
           method: "POST",
           headers: new Headers({
@@ -425,6 +433,10 @@ class HTStorage extends LitElement {
       let idToken = await firebase.auth().currentUser.getIdToken();
       let functionOptions = {
         name: "httpsUploadsGetFileList",
+        projectId:
+          window.projectEnv === "prod"
+            ? "myaccount-01-ht"
+            : "myaccount-01-ht-dev",
         options: {
           method: "POST",
           headers: new Headers({
