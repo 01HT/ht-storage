@@ -101,12 +101,14 @@ class HTStorageItem extends LitElement {
       this._onChange(e);
     }}"></paper-checkbox>
         </div>
-        <div class="preview"><img src="${window.cloudinaryURL}/${
+        <div class="preview"><img src="${window.appConfig.cloudinary.url}/${
       data.resource_type
     }/upload/c_scale,h_128,q_auto/v${data.version}/${data.public_id}.jpg"></div>
-          <div class="link"><a target="_blank" href="${window.cloudinaryURL}/${
-      data.resource_type
-    }/upload/v${data.version}/${data.public_id}.${data.format}">
+          <div class="link"><a target="_blank" href="${
+            window.appConfig.cloudinary.url
+          }/${data.resource_type}/upload/v${data.version}/${data.public_id}.${
+      data.format
+    }">
         <iron-icon icon="ht-storage-item-icons:link"></iron-icon>
         </a></div>
             <div class="name" title="${data.name}">${data.secure_url.substr(
