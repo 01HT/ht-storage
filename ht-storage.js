@@ -269,8 +269,8 @@ class HTStorage extends LitElement {
     let uid = firebase.auth().currentUser.uid;
     let widget = cloudinary.openUploadWidget(
       {
-        cloudName: window.cloudinaryCloudName,
-        apiKey: window.cloudinaryAPIKey,
+        cloudName: window.appConfig.cloudinary.cloudName,
+        apiKey: window.appConfig.cloudinary.apiKey,
         uploadSignature: this._getUploadSignature,
         showAdvancedOptions: false,
         cropping: false,
