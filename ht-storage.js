@@ -321,7 +321,7 @@ class HTStorage extends LitElement {
       let functionOptions = {
         name: "httpsUploadsGetSignatureForUserFileUpload",
         projectId:
-          window.projectEnv === "prod"
+          window.appConfig.projectEnv === "prod"
             ? "myaccount-01-ht"
             : "myaccount-01-ht-dev",
         options: {
@@ -392,7 +392,7 @@ class HTStorage extends LitElement {
       let functionOptions = {
         name: "httpsUploadsDeleteFiles",
         projectId:
-          window.projectEnv === "prod"
+          window.appConfig.projectEnv === "prod"
             ? "myaccount-01-ht"
             : "myaccount-01-ht-dev",
         options: {
@@ -434,7 +434,7 @@ class HTStorage extends LitElement {
       let functionOptions = {
         name: "httpsUploadsGetFileList",
         projectId:
-          window.projectEnv === "prod"
+          window.appConfig.projectEnv === "prod"
             ? "myaccount-01-ht"
             : "myaccount-01-ht-dev",
         options: {
